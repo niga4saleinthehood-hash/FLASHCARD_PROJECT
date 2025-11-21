@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-// Tạo một "người đưa thư" chuyên dụng
+// Ưu tiên dùng biến môi trường (Vercel), nếu không có thì dùng localhost
+const baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api', // Địa chỉ nhà Backend
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
