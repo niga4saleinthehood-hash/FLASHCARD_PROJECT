@@ -1,29 +1,21 @@
 import React, { useState } from 'react';
-import { Volume2, Zap, ArrowRight, Maximize2, X } from 'lucide-react';
+import { Zap, ArrowRight, Maximize2, X } from 'lucide-react'; // Bỏ Volume2
 
-// Swiper
+// Import Swiper & Modules
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Mousewheel, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/pagination';
 
+// --- 1. THẺ NHỎ ---
 const VocabWheelCard = ({ info, index, onExpand }) => {
-  
-  const playAudio = (e) => {
-    e.stopPropagation();
-    const utterance = new SpeechSynthesisUtterance(info.word);
-    speechSynthesis.speak(utterance);
-  };
-
   return (
-    // Khi click vào thẻ -> Gọi hàm onExpand để mở Modal
     <div className="vocab-card-wrapper" onClick={onExpand}>
-      
       <div className="card-top">
         <span className="index-badge">#{index + 1}</span>
-        <button className="btn-expand" title="Xem chi tiết">
-          <Maximize2 size={16} />
+        <button className="btn-expand" title="Phóng to">
+          <Maximize2 size={18} />
         </button>
       </div>
 
@@ -37,46 +29,34 @@ const VocabWheelCard = ({ info, index, onExpand }) => {
       </div>
 
       <div className="card-footer">
-        <div className="hint-text">
-          <Volume2 size={14} /> Listen & more details
-        </div>
+        <div className="hint-text">Select to see more information.</div>
       </div>
-
     </div>
   );
 };
 
-// --- 2. MODAL CHI TIẾT (POPUP) ---
+// --- 2. MODAL CHI TIẾT ---
 const DetailModal = ({ info, onClose }) => {
   if (!info) return null;
-
-  const playAudio = () => {
-    const utterance = new SpeechSynthesisUtterance(info.word);
-    speechSynthesis.speak(utterance);
-  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="expanded-card" onClick={(e) => e.stopPropagation()}>
         
-        {/* Header Modal */}
         <div className="expanded-header">
           <div>
-            <h1 style={{margin:0, fontSize:'2.5rem', lineHeight:1}}>{info.word}</h1>
+            <h1 style={{margin:0, fontSize:'2.5rem', lineHeight:1, color:'#fff'}}>{info.word}</h1>
             <div style={{display:'flex', gap:10, marginTop:5, alignItems:'center'}}>
                <span style={{color:'#94a3b8', fontStyle:'italic'}}>{info.ipa}</span>
-               <button onClick={playAudio} style={{background:'none', border:'none', color:'#8b5cf6', cursor:'pointer'}}><Volume2 size={24}/></button>
             </div>
             <h3 style={{color:'#10b981', margin:'10px 0 0'}}>{info.vietnamese}</h3>
           </div>
-          <button className="btn-close" onClick={onClose}><X size={20}/></button>
+          <button className="btn-close" onClick={onClose}><X size={24}/></button>
         </div>
 
-        {/* Body Modal (Cuộn được) */}
         <div className="expanded-body">
-          
-          <div className="section-title">Example</div>
-          <p style={{fontStyle:'italic', color:'#e2e8f0', background:'rgba(255,255,255,0.05)', padding:10, borderRadius:8}}>
+          <div className="section-title">Usage example</div>
+          <p style={{fontStyle:'italic', color:'#e2e8f0', background:'rgba(255,255,255,0.05)', padding:15, borderRadius:8, lineHeight: 1.5}}>
             "{info.example_sentence}"
           </p>
 
@@ -102,13 +82,12 @@ const DetailModal = ({ info, onClose }) => {
 
           {info.collocations && info.collocations.length > 0 && (
             <>
-              <div className="section-title">Collocation</div>
+              <div className="section-title">Prevalent Collocation</div>
               <ul className="collo-list">
                 {info.collocations.map((c, i) => <li key={i}>{c}</li>)}
               </ul>
             </>
           )}
-
         </div>
       </div>
     </div>
@@ -124,8 +103,8 @@ const VocabularyList = ({ cards, onStartPractice }) => {
   return (
     <div className="vocab-wheel-container">
       <div className="vocab-header">
-        <h2>You want 9.0 IELTS overall ? Learn by heart and practice ({cards.length})</h2>
-        <p>Scroll down and click on card for more details</p>
+        <h2>Vocab Wheel ({cards.length})</h2>
+        <p>Rotate by scrolling; click on a card to explore further</p>
       </div>
 
       <Swiper
@@ -149,80 +128,16 @@ const VocabularyList = ({ cards, onStartPractice }) => {
           </SwiperSlide>
         ))}
         
-        {/* SLIDE CUỐI CÙNG: NÚT BẮT ĐẦU (Dùng Inline Style để ép giao diện đổi) */}
         <SwiperSlide className="vocab-square-slide last-slide">
-          <div 
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '25px',
-              
-              // Hiệu ứng kính mờ & Viền Neon
-              background: 'rgba(15, 23, 42, 0.85)', 
-              backdropFilter: 'blur(12px)',
-              border: '3px dashed #8b5cf6',
-              borderRadius: '30px',
-              boxShadow: '0 0 40px rgba(139, 92, 246, 0.25)'
-            }}
-          >
-            <h3 
-              style={{
-                fontSize: '1.8rem',
-                fontWeight: '900',
-                margin: 0,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                
-                // Màu chữ Gradient
-                background: 'linear-gradient(to right, #fff, #d8b4fe)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}
-            >
-              CONGRATULATION. YOU'VE FINISHED ALL THOSE WORDS
-            </h3>
-
-            <button 
-              onClick={onStartPractice} 
-              style={{
-                // Nền Gradient Tím -> Hồng
-                background: 'linear-gradient(135deg, #8b5cf6, #d946ef)',
-                color: 'white',
-                border: 'none',
-                
-                // Kích thước to đẹp
-                padding: '16px 32px',
-                fontSize: '1.1rem',
-                fontWeight: '800',
-                borderRadius: '50px',
-                
-                // Flexbox căn chỉnh icon
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                cursor: 'pointer',
-                
-                // Hiệu ứng bóng đổ phát sáng
-                boxShadow: '0 10px 30px rgba(139, 92, 246, 0.6)',
-                transition: 'transform 0.2s'
-              }}
-              // Thêm hiệu ứng hover bằng JS đơn giản
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-               <Zap size={24} fill="white" /> 
-               <span>PUT IT INTO PRACTICE</span> 
-               <ArrowRight size={24}/>
+          <div className="start-card">
+            <h3>You have reached the end of the list!</h3>
+            <button className="btn-start-neon" onClick={onStartPractice}>
+               <Zap size={24} /> <span>Put It Into Practice</span> <ArrowRight size={24}/>
             </button>
           </div>
         </SwiperSlide>
       </Swiper>
 
-      {/* Hiển thị Modal khi có thẻ được chọn */}
       {selectedCard && (
         <DetailModal info={selectedCard} onClose={() => setSelectedCard(null)} />
       )}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import UploadForm from './components/UploadForm';
 import Flashcard from './components/Flashcard';
-import VocabularyList from './components/VocabularyList'; // Import component mới
+import VocabularyList from './components/VocabularyList';
 import { getDeck } from './api/deckApi';
 import { ChevronLeft, ChevronRight, BookOpen, List } from 'lucide-react';
 
@@ -10,33 +10,51 @@ function App() {
   const [currentDeckId, setCurrentDeckId] = useState(null);
   const [deckData, setDeckData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  // State mới: Quản lý chế độ xem ('list' hoặc 'flashcard')
-  const [viewMode, setViewMode] = useState('list'); 
+  const [viewMode, setViewMode] = useState('list');
+  
+  // State mới: Kiểm tra xem Backend đã xong hoàn toàn chưa
+  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 
   const handleUploadSuccess = (deckId) => {
     setCurrentDeckId(deckId);
     setDeckData(null);
     setCurrentIndex(0);
-    setViewMode('list'); // Mặc định sau khi upload là xem List trước
+    setViewMode('list');
+    setIsFullyLoaded(false); // Reset trạng thái
   };
 
   useEffect(() => {
-    if (!currentDeckId || deckData) return;
+    if (!currentDeckId || isFullyLoaded) return;
+
     const interval = setInterval(async () => {
       try {
         const data = await getDeck(currentDeckId);
-        if (data.cards && data.cards.length > 0) setDeckData(data);
-      } catch (error) {}
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [currentDeckId, deckData]);
+        
+        // Nếu có dữ liệu mới
+        if (data.cards && data.cards.length > 0) {
+          // Cập nhật dữ liệu (React sẽ tự render thêm thẻ mới vào danh sách)
+          setDeckData(data);
+          
+          // Kiểm tra xem Backend đã xong việc chưa
+          // (Dựa vào mô tả description có dấu tick ✅ hoặc logic riêng)
+          if (data.description && data.description.includes("✅")) {
+            setIsFullyLoaded(true);
+            console.log("Đã tải xong toàn bộ!");
+          }
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    }, 3000); // Hỏi mỗi 3 giây
 
-  // Hàm quay về menu chính
+    return () => clearInterval(interval);
+  }, [currentDeckId, isFullyLoaded]);
+
   const resetApp = () => {
     setCurrentDeckId(null);
     setDeckData(null);
     setViewMode('list');
+    setIsFullyLoaded(false);
   };
 
   return (
@@ -45,28 +63,29 @@ function App() {
       
       {!currentDeckId && (
         <>
-          <p className="subtitle">ENHANCE YOUR VOCAB RIGHT NOW FOR A BETTER IELTS BAND SCORE</p>
+          <p className="subtitle">Enhance English lexical competence using an intelligent, standardized learning framework</p>
           <UploadForm onUploadSuccess={handleUploadSuccess} />
         </>
       )}
 
-      {currentDeckId && !deckData && (
+      {/* CHỈ HIỆN LOADING KHI CHƯA CÓ THẺ NÀO */}
+      {currentDeckId && (!deckData || deckData.cards.length === 0) && (
         <div style={{marginTop: 100}}>
-          <h2>⏳ Initializing the vocabulary set...</h2>
-          <p className="subtitle">AI is analyzing the meanings and finding accurate examples</p>
+          <h2>⏳ Initializing the vocabulary set…</h2>
+          <p className="subtitle">The initial vocabulary items will appear within a few seconds</p>
         </div>
       )}
 
-      {/* KHI ĐÃ CÓ DỮ LIỆU */}
-      {deckData && (
+      {deckData && deckData.cards.length > 0 && (
         <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           
-          {/* Thanh tiêu đề nhỏ hiển thị tên bộ thẻ */}
           <div style={{display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, color: '#94a3b8'}}>
-            <BookOpen size={18}/> Card set: <strong>{deckData.title}</strong>
+            <BookOpen size={18}/> 
+            Bộ thẻ: <strong>{deckData.title}</strong>
+            {/* Hiển thị trạng thái loading nhỏ nếu chưa xong hết */}
+            {!isFullyLoaded && <span style={{fontSize:'0.8rem', color:'#eab308'}}>(Retrieving further data...)</span>}
           </div>
 
-          {/* --- MÀN HÌNH 1: CHẾ ĐỘ DANH SÁCH (HỌC) --- */}
           {viewMode === 'list' && (
             <VocabularyList 
               cards={deckData.cards} 
@@ -74,16 +93,13 @@ function App() {
             />
           )}
 
-          {/* --- MÀN HÌNH 2: CHẾ ĐỘ FLASHCARD (LUYỆN TẬP) --- */}
           {viewMode === 'flashcard' && (
             <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-              
-              {/* Nút quay lại xem list */}
               <button 
                 onClick={() => setViewMode('list')}
                 style={{background: 'transparent', border: 'none', color: '#8b5cf6', cursor: 'pointer', marginBottom: 10, display: 'flex', gap: 5}}
               >
-                <List size={16}/> Review the word list
+                <List size={16}/> Review the vocabulary list
               </button>
 
               <div className="study-wrapper">
@@ -95,7 +111,10 @@ function App() {
                   <ChevronLeft size={32} />
                 </button>
 
-                <Flashcard cardData={deckData.cards[currentIndex]} />
+                {/* Kiểm tra an toàn để tránh lỗi khi index vượt quá mảng đang load */}
+                {deckData.cards[currentIndex] && (
+                  <Flashcard cardData={deckData.cards[currentIndex]} />
+                )}
 
                 <button 
                   className="nav-btn" 
@@ -107,15 +126,14 @@ function App() {
               </div>
               
               <p style={{marginTop: 20, color: '#64748b'}}>
-                Thẻ {currentIndex + 1} / {deckData.cards.length}
+                Card {currentIndex + 1} / {deckData.cards.length} {!isFullyLoaded ? '...' : ''}
               </p>
               
-              {/* Nút hoàn thành */}
               <button 
                 onClick={resetApp}
                 style={{marginTop: 50, background: '#334155', color: 'white', padding: '10px 20px', borderRadius: 8, border: 'none', cursor: 'pointer'}}
               >
-                ⬅️ Switch to another set
+                ⬅️ Switch to another vocabulary set
               </button>
             </div>
           )}
