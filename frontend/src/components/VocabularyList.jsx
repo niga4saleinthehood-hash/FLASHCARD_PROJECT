@@ -1,26 +1,38 @@
 import React, { useState } from 'react';
-import { Zap, ArrowRight, Maximize2, X } from 'lucide-react'; // Bỏ Volume2
-import { playSmartAudio } from '../utils/audioManager';
+import { Zap, ArrowRight, Maximize2, X, Volume2 } from 'lucide-react'; // Đảm bảo có Volume2
+import { playSmartAudio } from '../utils/audioManager'; // Import hàm phát âm
+
 // Import Swiper & Modules
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Mousewheel, Pagination } from 'swiper/modules';
+
+// Import CSS Swiper
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/pagination';
 
-// --- 1. THẺ NHỎ ---
+// --- 1. THẺ NHỎ (CARD ON WHEEL) ---
 const VocabWheelCard = ({ info, index, onExpand }) => {
+  
   const handlePlayAudio = (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Ngăn không cho mở Modal khi bấm loa
     playSmartAudio(info.word);
   };
+
   return (
     <div className="vocab-card-wrapper" onClick={onExpand}>
       <div className="card-top">
         <span className="index-badge">#{index + 1}</span>
-        <button className="btn-expand" title="Phóng to">
-          <Maximize2 size={18} />
-        </button>
+        
+        {/* Group nút bấm: Loa + Phóng to */}
+        <div style={{display: 'flex', gap: '8px'}}>
+            <button className="btn-expand" onClick={handlePlayAudio} title="Listen">
+                <Volume2 size={18} />
+            </button>
+            <button className="btn-expand" title="Expand">
+                <Maximize2 size={18} />
+            </button>
+        </div>
       </div>
 
       <div className="card-main">
@@ -33,19 +45,21 @@ const VocabWheelCard = ({ info, index, onExpand }) => {
       </div>
 
       <div className="card-footer">
-        <div className="hint-text">Select to see more information.</div>
+        <div className="hint-text">Tap card to explore details</div>
       </div>
     </div>
   );
 };
 
-// --- 2. MODAL CHI TIẾT ---
+// --- 2. MODAL CHI TIẾT (EXPANDED VIEW) ---
 const DetailModal = ({ info, onClose }) => {
   if (!info) return null;
+
   const handlePlayAudio = (e) => {
     e.stopPropagation();
     playSmartAudio(info.word);
   };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="expanded-card" onClick={(e) => e.stopPropagation()}>
@@ -55,6 +69,9 @@ const DetailModal = ({ info, onClose }) => {
             <h1 style={{margin:0, fontSize:'2.5rem', lineHeight:1, color:'#fff'}}>{info.word}</h1>
             <div style={{display:'flex', gap:10, marginTop:5, alignItems:'center'}}>
                <span style={{color:'#94a3b8', fontStyle:'italic'}}>{info.ipa}</span>
+               <button onClick={handlePlayAudio} style={{background:'none', border:'none', color:'#8b5cf6', cursor:'pointer'}}>
+                 <Volume2 size={24}/>
+               </button>
             </div>
             <h3 style={{color:'#10b981', margin:'10px 0 0'}}>{info.vietnamese}</h3>
           </div>
@@ -62,7 +79,7 @@ const DetailModal = ({ info, onClose }) => {
         </div>
 
         <div className="expanded-body">
-          <div className="section-title">Usage example</div>
+          <div className="section-title">Usage Example</div>
           <p style={{fontStyle:'italic', color:'#e2e8f0', background:'rgba(255,255,255,0.05)', padding:15, borderRadius:8, lineHeight: 1.5}}>
             "{info.example_sentence}"
           </p>
@@ -80,7 +97,7 @@ const DetailModal = ({ info, onClose }) => {
 
           {info.synonyms && info.synonyms.length > 0 && (
             <>
-              <div className="section-title">Synonym</div>
+              <div className="section-title">Synonyms</div>
               <div className="tag-cloud">
                 {info.synonyms.map((s, i) => <span key={i} className="tag-item">{s}</span>)}
               </div>
@@ -89,7 +106,7 @@ const DetailModal = ({ info, onClose }) => {
 
           {info.collocations && info.collocations.length > 0 && (
             <>
-              <div className="section-title">Prevalent Collocation</div>
+              <div className="section-title">Common Collocations</div>
               <ul className="collo-list">
                 {info.collocations.map((c, i) => <li key={i}>{c}</li>)}
               </ul>
@@ -101,17 +118,17 @@ const DetailModal = ({ info, onClose }) => {
   );
 };
 
-// --- COMPONENT CHÍNH ---
+// --- COMPONENT CHÍNH (MAIN COMPONENT) ---
 const VocabularyList = ({ cards, onStartPractice }) => {
   const [selectedCard, setSelectedCard] = useState(null);
 
-  if (!cards || cards.length === 0) return <div style={{marginTop:50, color:'white'}}>Loading...</div>;
+  if (!cards || cards.length === 0) return <div style={{marginTop:50, color:'white', textAlign:'center'}}>Loading vocabulary...</div>;
 
   return (
     <div className="vocab-wheel-container">
       <div className="vocab-header">
         <h2>Vocab Wheel ({cards.length})</h2>
-        <p>Rotate by scrolling; click on a card to explore further</p>
+        <p>Scroll to rotate; Tap card to explore</p>
       </div>
 
       <Swiper
@@ -121,7 +138,13 @@ const VocabularyList = ({ cards, onStartPractice }) => {
         slidesPerView={'auto'}
         direction={'vertical'}
         mousewheel={true}
-        coverflowEffect={{ rotate: 0, stretch: 50, depth: 200, modifier: 1, slideShadows: false }}
+        coverflowEffect={{
+          rotate: 0,
+          stretch: 50,
+          depth: 200,
+          modifier: 1,
+          slideShadows: false,
+        }}
         modules={[EffectCoverflow, Mousewheel, Pagination]}
         className="mySwiper"
       >
@@ -137,7 +160,7 @@ const VocabularyList = ({ cards, onStartPractice }) => {
         
         <SwiperSlide className="vocab-square-slide last-slide">
           <div className="start-card">
-            <h3>You have reached the end of the list!</h3>
+            <h3>You have reached the end!</h3>
             <button className="btn-start-neon" onClick={onStartPractice}>
                <Zap size={24} /> <span>Put It Into Practice</span> <ArrowRight size={24}/>
             </button>
@@ -145,6 +168,7 @@ const VocabularyList = ({ cards, onStartPractice }) => {
         </SwiperSlide>
       </Swiper>
 
+      {/* Modal popup when a card is selected */}
       {selectedCard && (
         <DetailModal info={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
