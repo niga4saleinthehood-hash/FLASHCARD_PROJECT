@@ -1,54 +1,63 @@
-export const playSmartAudio = async (text) => {
+
+export const playSmartAudio = (text) => {
   if (!text) return;
 
-  // 1. Dọn dẹp văn bản (xóa khoảng trắng thừa, chuyển thường)
-  const cleanText = text.trim().toLowerCase();
-
-  // Chỉ áp dụng nếu text ngắn (dưới 4 từ) vì từ điển không chứa câu dài
-  if (cleanText.split(' ').length <= 4) {
-    try {
-      // Gọi API Từ điển miễn phí
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanText}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Tìm file audio trong dữ liệu trả về
-        // API này trả về nhiều nguồn, ta tìm cái nào có link file mp3
-        if (Array.isArray(data) && data.length > 0) {
-          const phonetics = data[0].phonetics;
-          const audioObj = phonetics.find(p => p.audio && p.audio !== "");
-          
-          if (audioObj) {
-            const audio = new Audio(audioObj.audio);
-            audio.play();
-            console.log(`Đang phát giọng thật: "${cleanText}"`);
-            return; // Thành công! Dừng hàm tại đây.
-          }
-        }
-      }
-    } catch (error) {
-      // Lỗi mạng hoặc không tìm thấy -> Bỏ qua để xuống bước sau
-    }
-  }
-
-  // Dùng khi: Không tìm thấy từ điển, hoặc là câu dài
-  console.log(`Đang phát giọng máy: "${text}"`);
-  
-  // Hủy các giọng đang đọc dở (nếu có)
+  // 1. Hủy giọng đang đọc dở (nếu người dùng bấm liên tục)
   window.speechSynthesis.cancel();
 
+  // 2. Tạo đối tượng phát âm
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US'; // Giọng Mỹ
-  utterance.rate = 0.9;     // Tốc độ hơi chậm một chút cho rõ (0.9)
   
-  // Cố gắng tìm giọng Google xịn nhất trên trình duyệt
-  const voices = window.speechSynthesis.getVoices();
-  const preferredVoice = voices.find(v => v.name.includes("Google US English")) || voices.find(v => v.lang === 'en-US');
-  
-  if (preferredVoice) {
-    utterance.voice = preferredVoice;
+  // 3. Lấy danh sách giọng đọc có sẵn trên máy
+  let voices = window.speechSynthesis.getVoices();
+
+  // Mẹo: Đôi khi trình duyệt chưa load kịp giọng, thử load lại
+  if (voices.length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = window.speechSynthesis.getVoices();
+      setBestVoice(utterance, voices);
+      window.speechSynthesis.speak(utterance);
+    };
+    return; // Đợi sự kiện kích hoạt
   }
 
+  // 4. Chọn giọng tốt nhất (Ưu tiên giọng Mỹ tự nhiên)
+  setBestVoice(utterance, voices);
+
+  // 5. Tinh chỉnh tốc độ (0.9 là tốc độ vàng để học tiếng Anh)
+  utterance.rate = 0.9; 
+  utterance.pitch = 1;
+
+  // 6. Đọc
   window.speechSynthesis.speak(utterance);
 };
+
+
+function setBestVoice(utterance, voices) {
+  // Danh sách ưu tiên (Theo kinh nghiệm: Google > Microsoft > Apple)
+  const preferredVoices = [
+    "Google US English",      // Chrome (Rất hay)
+    "Microsoft Zira",         // Windows (Khá)
+    "Samantha",               // macOS (Khá)
+    "English United States"   // Mặc định
+  ];
+
+  let selectedVoice = null;
+
+  // Tìm giọng phù hợp nhất trong danh sách ưu tiên
+  for (const pref of preferredVoices) {
+    selectedVoice = voices.find(v => v.name.includes(pref));
+    if (selectedVoice) break;
+  }
+
+  // Nếu không tìm thấy giọng ưu tiên, lấy giọng tiếng Anh bất kỳ
+  if (!selectedVoice) {
+    selectedVoice = voices.find(v => v.lang.startsWith('en-US'));
+  }
+
+  // Gán giọng đã chọn
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+    console.log("🎤 Đang đọc bằng giọng:", selectedVoice.name);
+  }
+}
