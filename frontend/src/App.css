@@ -385,10 +385,34 @@ h1 {
 .practice-example { font-size: 1.3rem; color: #e2e8f0; font-style: italic; line-height: 1.6; }
 .practice-hint { position: absolute; bottom: 25px; color: #64748b; font-size: 0.9rem; font-style: italic; opacity: 0.8; }
 
-.btn-audio-top-right { position: absolute; top: 25px; right: 25px; }
-.btn-audio-practice { background: rgba(255, 255, 255, 0.1); border: none; color: var(--primary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-.btn-audio-practice:hover { background: var(--primary); color: white; transform: scale(1.1); }
+.btn-audio-top-right {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10; /* Đảm bảo nổi lên trên cùng */
+}
 
+.btn-audio-practice {
+  background: rgba(255, 255, 255, 0.1); /* Nền mờ */
+  border: none;
+  color: #8b5cf6; /* Màu tím (var(--primary)) */
+  width: 45px;
+  height: 45px;
+  border-radius: 50%; /* Hình tròn */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.btn-audio-practice:hover {
+  background: #8b5cf6; /* Hover thành màu tím */
+  color: white;
+  transform: scale(1.1); /* Phóng to nhẹ */
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.5);
+}
 .nav-btn {
   background: rgba(255, 255, 255, 0.1);
   border: none;
