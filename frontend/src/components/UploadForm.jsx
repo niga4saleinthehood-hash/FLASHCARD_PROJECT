@@ -82,7 +82,7 @@ const UploadForm = ({ onUploadSuccess }) => {
           ref={fileInputRef}
           onChange={handleFileChange} 
           style={{ display: 'none' }} // Ẩn input xấu xí đi
-          accept=".txt"
+          accept=".txt,.pdf,.docx"
         />
 
         {!file ? (
@@ -92,7 +92,7 @@ const UploadForm = ({ onUploadSuccess }) => {
               <UploadCloud size={48} />
             </div>
             <h3>UPDDATE YOUR NOTES HERE</h3>
-            <p>DRAG AND DROP FILES HERE <strong>.txt</strong> OR CLICK TO SELECT</p>
+            <p>DRAG AND DROP FILES HERE <strong>.txt , .pdf , .docx</strong> OR CLICK TO SELECT</p>
           </div>
         ) : (
           // Giao diện khi ĐÃ chọn file
