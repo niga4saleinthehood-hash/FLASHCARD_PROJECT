@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # <-- Import cái này
 from backend.api import endpoints
+from backend.db.database import engine, Base
+from backend.models import user_models
 
+Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # --- CẤU HÌNH CORS (MỞ CỬA CHO FRONTEND) ---
