@@ -579,3 +579,21 @@ h1 {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+.front-collo-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.front-collo-tag {
+  font-size: 0.9rem;
+  color: #e2e8f0; /* Màu chữ sáng */
+  background: rgba(255, 255, 255, 0.1); /* Nền mờ */
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-style: italic;
+}

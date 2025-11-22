@@ -100,6 +100,17 @@ const Flashcard = ({ cardData }) => {
             <h2 className="practice-word">{info.word}</h2>
             <p className="practice-ipa">{info.ipa}</p>
             <span className="practice-type">{info.type}</span>
+            
+            {info.collocations && info.collocations.length > 0 && (
+              <div className="front-collo-wrapper">
+                {info.collocations.slice(0, 2).map((col, idx) => (
+                  <span key={idx} className="front-collo-tag">
+                    {col}
+                  </span>
+                ))}
+              </div>
+            )}
+
             <p className="practice-hint">(Touch to reveal the definition)</p>
           </div>
 
