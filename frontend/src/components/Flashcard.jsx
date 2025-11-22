@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Send, Sparkles } from 'lucide-react'; // Bỏ Volume2
+import { Send, Sparkles, Volume2 } from 'lucide-react'; // Re-added Volume2
 import ReactMarkdown from 'react-markdown';
+import { playSmartAudio } from '../utils/audioManager'; // Ensure this import exists
 
 const Flashcard = ({ cardData }) => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -22,13 +23,18 @@ const Flashcard = ({ cardData }) => {
     setIsChecking(false);
   }, [cardData]);
 
+  const handleSpeak = (e) => {
+    e.stopPropagation(); // Stop card from flipping
+    playSmartAudio(info.word);
+  };
+
   const handleCheck = async () => {
     if (!userSentence.trim()) return;
     
     setIsChecking(true);
     setMetaData(null);
     setStreamedFeedback("");
-    setLoadingText("Analysing....");
+    setLoadingText("Analysing...");
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
@@ -65,7 +71,7 @@ const Flashcard = ({ cardData }) => {
         }
       }
     } catch (err) {
-      setLoadingText("❌ Lỗi kết nối server.");
+      setLoadingText("❌ Server connection error.");
     } finally {
       setIsChecking(false);
     }
@@ -83,7 +89,13 @@ const Flashcard = ({ cardData }) => {
           
           {/* MẶT TRƯỚC */}
           <div className="practice-face practice-front">
-            {/* Đã xóa nút loa ở đây */}
+            
+            {/* Re-added Audio Button */}
+            <div style={{position: 'absolute', top: 20, right: 20}}>
+               <button className="btn-audio-practice" onClick={handleSpeak}>
+                 <Volume2 size={24}/>
+               </button>
+            </div>
             
             <h2 className="practice-word">{info.word}</h2>
             <p className="practice-ipa">{info.ipa}</p>
@@ -106,14 +118,14 @@ const Flashcard = ({ cardData }) => {
         <div className="practice-box">
           <div className="practice-label">
              <Sparkles size={18} color="#fbbf24"/>
-             <span>Make a sentence for best understanding"{info.word}"</span>
+             <span>Make a sentence for best understanding "{info.word}"</span>
           </div>
           
           <div className="input-wrapper">
             <input 
               value={userSentence}
               onChange={(e) => setUserSentence(e.target.value)}
-              placeholder="Nhập câu ví dụ của bạn..."
+              placeholder="Enter your sentence here..."
               onKeyDown={(e) => e.key === 'Enter' && handleCheck()}
             />
             <button onClick={handleCheck} disabled={isChecking}>

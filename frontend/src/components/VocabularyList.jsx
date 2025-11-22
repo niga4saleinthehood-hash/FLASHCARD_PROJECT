@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, ArrowRight, Maximize2, X } from 'lucide-react'; // Bỏ Volume2
-
+import { playSmartAudio } from '../utils/audioManager';
 // Import Swiper & Modules
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Mousewheel, Pagination } from 'swiper/modules';
@@ -10,6 +10,10 @@ import 'swiper/css/pagination';
 
 // --- 1. THẺ NHỎ ---
 const VocabWheelCard = ({ info, index, onExpand }) => {
+  const handlePlayAudio = (e) => {
+    e.stopPropagation();
+    playSmartAudio(info.word);
+  };
   return (
     <div className="vocab-card-wrapper" onClick={onExpand}>
       <div className="card-top">
@@ -38,7 +42,10 @@ const VocabWheelCard = ({ info, index, onExpand }) => {
 // --- 2. MODAL CHI TIẾT ---
 const DetailModal = ({ info, onClose }) => {
   if (!info) return null;
-
+  const handlePlayAudio = (e) => {
+    e.stopPropagation();
+    playSmartAudio(info.word);
+  };
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="expanded-card" onClick={(e) => e.stopPropagation()}>
